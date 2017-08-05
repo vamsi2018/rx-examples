@@ -1,0 +1,23 @@
+{
+  "name": "rx-examples",
+  "version": "1.0.0",
+  "description": "reactive js example to fetch github issues",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vamsi2018/rx-examples.git"
+  },
+  "author": "vamsi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vamsi2018/rx-examples/issues"
+  },
+  "homepage": "https://github.com/vamsi2018/rx-examples#readme",
+  "dependencies": {
+    "express": "^4.15.3"
+  }
+}

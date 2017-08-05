@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Github Issues in RxJS</title>
+    <style>
+      #form {
+        margin-bottom: 20px;
+      }
+      .issue {
+        padding: 10px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+      .issue p {
+        margin-top: 10px;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .issueTitle { font-size: 2em; }
+      .temp { font-size: 4em; }
+    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">      
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.3/css/materialize.min.css">
+      <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>           
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.3/js/materialize.min.js"></script>
+
+
+  </head>
+  <body class="container">
+    <div id="app-container" 
+      <div id="form">
+        <label>Github Repo (Owner/project):</label>
+        <input type="text" id="repo-input">
+        <button id="get-issues">Get Issues</button>
+      </div>
+    </div>
+    <ul class="collapsible popout" data-collapsible="accordion" id="issues-container"> </ul>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.0-beta.12/Rx.min.js"></script>
+    <script>
+      // our code will go here
+      // Grab HTML elements
+      const issuesContainer = document.getElementById('issues-container');
+      const repoInput = document.getElementById('repo-input');
+      const getIssuesBtn = document.getElementById('get-issues');
+      const serverUrl = window.location.hostname+":"+window.location.port;
+      // Get stream of button clicks
+      const btnClickStream =
+        Rx.Observable
+          .fromEvent(getIssuesBtn, 'click')
+          .mapTo(true);
+
+      // Get stream of repo inputs
+      const repoInputStream =
+        Rx.Observable
+          .fromEvent(repoInput, 'input')
+          .map(e => e.target.value)
+          .filter(repo => repo.split("/").length === 2)
+
+      // Get repo issues after button clicked
+      const repoStream =
+        btnClickStream
+          .withLatestFrom(repoInputStream, (click, repo) => repo)
+          .distinct();
+
+      // Create reusable github issues fetching stream
+      const getIssues = repo =>
+        fetch(`http://`+serverUrl+`/${repo}`)
+          .then(res => res.json());
+
+      const repoIssuesStreamFactory = repo =>
+        Rx.Observable
+          .fromPromise(getIssues(repo))
+          //.map(({ main: { temp } }) => ({ temp, zip }));
+
+
+      // Get new repo at each button click, get its
+      // issues, and paint it to the screen
+      repoStream
+        .flatMap(repoIssuesStreamFactory)
+        .flatMap(x=>x)
+        .forEach(issue => {
+          const issueListEle = document.createElement('li');
+
+          // const issueEle = document.createElement('div');
+          // issueEle.id = `${issue.url}`;
+          // issueEle.classList.add('issue');
+          // issueEle.data-role = "collapsible";
+
+          const issueTitleEle = document.createElement('div');
+          issueTitleEle.classList.add('collapsible-header');
+          issueTitleEle.innerHTML = "<b>"+repoInput.value+"</b> : "+issue.title;
+
+          const descEle = document.createElement('div');
+          descEle.classList.add('collapsible-body');
+          descEle.innerHTML = `${issue.body}`;
+
+          issueListEle.appendChild(issueTitleEle);
+          issueListEle.appendChild(descEle);
+          // issueListEle.appendChild(issueEle);
+          issuesContainer.appendChild(issueListEle);
+
+        });
+
+  </script>
+  </body>
+  </html>
