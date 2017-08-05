@@ -20,7 +20,6 @@
         text-align: center;
       }
       .issueTitle { font-size: 2em; }
-      .temp { font-size: 4em; }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1">      
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -41,12 +40,12 @@
     <ul class="collapsible popout" data-collapsible="accordion" id="issues-container"> </ul>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.0-beta.12/Rx.min.js"></script>
     <script>
-      // our code will go here
       // Grab HTML elements
       const issuesContainer = document.getElementById('issues-container');
       const repoInput = document.getElementById('repo-input');
       const getIssuesBtn = document.getElementById('get-issues');
       const serverUrl = window.location.hostname+":"+window.location.port;
+
       // Get stream of button clicks
       const btnClickStream =
         Rx.Observable
@@ -74,7 +73,6 @@
       const repoIssuesStreamFactory = repo =>
         Rx.Observable
           .fromPromise(getIssues(repo))
-          //.map(({ main: { temp } }) => ({ temp, zip }));
 
 
       // Get new repo at each button click, get its
@@ -101,7 +99,7 @@
           issueListEle.appendChild(issueTitleEle);
           issueListEle.appendChild(descEle);
           // issueListEle.appendChild(issueEle);
-          issuesContainer.appendChild(issueListEle);
+          $("#issues-container").prepend(issueListEle);
 
         });
 
