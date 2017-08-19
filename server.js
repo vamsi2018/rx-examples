@@ -24,6 +24,9 @@ var getGithubIssues = function(repo,project,res){
 
 		response.on("end", function(){
 			var githubResponse = JSON.parse(body)
+			if(githubResponse.message === "Not Found"){
+				githubResponse = [githubResponse]
+			}
 		    res.send(githubResponse);
 	    });
 	});

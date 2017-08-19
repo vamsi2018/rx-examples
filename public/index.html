@@ -40,6 +40,83 @@
     <ul class="collapsible popout" data-collapsible="accordion" id="issues-container"> </ul>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.0.0-beta.12/Rx.min.js"></script>
     <script>
+
+    // Video-con-1 start
+      // var arr = [1,2,3,4,5,6,7,8,9,10]
+      // const arrStream = Rx.Observable.from(arr)
+      // const source = Rx.Observable.timer(1000, 2000);
+      // const fireEventsStream = Rx.Observable.zip(arrStream,source)
+      // const subscribe = fireEventsStream.subscribe(val => console.log(val));
+    // Video-con-1 end
+
+    // Video-con-2 start
+      swipe_down_intent = {
+        "intent" : "swipe_down",
+
+      }
+
+      swipe_up_intent = {
+        "intent" : "swipe_up"
+      }
+
+      click_intent = {
+        "intent" : "click"
+      }
+
+      transform = function(intent){
+        // console.log("In transform");
+        // console.log(intent);
+        var message = "";
+        if(intent["intent"] == "swipe_down"){
+          message =  {"state_action":"WAITING_FOR_RELOAD",
+                      "result":"swipe_down"
+                    };
+        }else if (intent["intent"] == "swipe_up"){
+          message =  {"state_action":"WAITING_FOR_UPDATE",
+                      "result":"swipe_up"
+                    };
+        }else if (intent["intent"] == "click") {
+          message =  {"state_action":"WAITING_FOR_DETAILS",
+                      "result":"click"
+                    };
+        }else {
+          message =  {"state_action":"UNHANDLED",
+                      "result":"unhandled"
+                    };
+        }
+        return {"call" : function() { return message;}}
+      }
+
+      createNewState = function(previous_state,result){
+        if (result["state_action"] == "WAITING_FOR_RELOAD"){
+          return previous_state+result["result"];
+        }else if (result["state_action"] == "WAITING_FOR_UPDATE") {
+          return result["result"];
+        }else if (result["state_action"] == "WAITING_FOR_DETAILS") {
+          return previous_state+" : "+result["result"];
+        }
+      }
+      // logStates = function(x,y){
+      //   console.log("Logging states");
+      //   console.log(x);
+      //   console.log(y);
+      //   return "Hello";
+      // }
+      actionStreamFactory = action => Rx.Observable.of(action.call())
+
+      intentEvents = [swipe_down_intent, swipe_up_intent, click_intent, swipe_down_intent]
+      // console.log(intentEvents);
+      // initial_state = function(){return "inivan"}
+      Rx.Observable
+        .from(intentEvents)
+        .map(intent => transform(intent))
+        .flatMap(actionStreamFactory)
+        .scan(createNewState,"initial_state")
+        .subscribe(val => console.log(val))
+      // Video-con-2 end
+
+
+      
       // Grab HTML elements
       const issuesContainer = document.getElementById('issues-container');
       const repoInput = document.getElementById('repo-input');
@@ -74,12 +151,12 @@
         Rx.Observable
           .fromPromise(getIssues(repo))
 
-
       // Get new repo at each button click, get its
       // issues, and paint it to the screen
       repoStream
         .flatMap(repoIssuesStreamFactory)
         .flatMap(x=>x)
+        // .filter(issue=>issue["message"]===undefined)
         .forEach(issue => {
           const issueListEle = document.createElement('li');
 
@@ -87,20 +164,22 @@
           // issueEle.id = `${issue.url}`;
           // issueEle.classList.add('issue');
           // issueEle.data-role = "collapsible";
+          try{
+            const issueTitleEle = document.createElement('div');
+            issueTitleEle.classList.add('collapsible-header');
+            issueTitleEle.innerHTML = "<b>"+repoInput.value+"</b> : "+issue.title;
 
-          const issueTitleEle = document.createElement('div');
-          issueTitleEle.classList.add('collapsible-header');
-          issueTitleEle.innerHTML = "<b>"+repoInput.value+"</b> : "+issue.title;
+            const descEle = document.createElement('div');
+            descEle.classList.add('collapsible-body');
+            descEle.innerHTML = `${issue.body}`;
 
-          const descEle = document.createElement('div');
-          descEle.classList.add('collapsible-body');
-          descEle.innerHTML = `${issue.body}`;
-
-          issueListEle.appendChild(issueTitleEle);
-          issueListEle.appendChild(descEle);
-          // issueListEle.appendChild(issueEle);
-          $("#issues-container").prepend(issueListEle);
-
+            issueListEle.appendChild(issueTitleEle);
+            issueListEle.appendChild(descEle);
+            // issueListEle.appendChild(issueEle);
+            $("#issues-container").prepend(issueListEle);
+          } catch(e) {
+            console.log(e)
+          }
         });
 
   </script>

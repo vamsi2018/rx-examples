@@ -1,0 +1,71 @@
+
+Mobile -> middleware 
+
+
+transform
+	-> INTENT
+	<- ACTION
+createNewState(previousState,newResult):currentState
+
+intentObservable     = Observable<Intent>
+middleWareObservable = intentObservable
+							.map(transform)
+							.flatMap
+							.scan(createNewState)
+//intentObservable.zip(middleWareObservable)
+
+middleWareObservable.subsicribe(phoneStateSubscriber)
+
+
+types of intents:
+	swipe_down --> refresh
+	swipe_up   --> loadmore
+	click      --> getDetails
+
+UI ->> list of items
+
+UI ---------------------------
+Context
+	payload
+
+enum IntentEvent {
+	SWIPE_DOWN
+	SWIPE_UP
+	CLICK
+}
+
+IntentInterface --> interface
+			getContext
+			IntentEvent
+
+swipe_down implements IntentInterface
+swipe_up implements IntentInterface
+click implements IntentInterface
+--------------------------------
+Action
+	variables
+	data : json
+	methods
+	call() : Future<Result>
+
+Result:
+	data : json
+State
+	data : json
+	computeNewResult(State,Result) : State
+
+WAITING_FOR_UPDATE implements State
+WAITING_FOR_DETAILS implements State
+WAITING_FOR_RELOAD implements State
+
+ActionFactory 
+	take intent
+	give the corresponding Action
+middleware
+	transform(intent) : Action
+		return actionFactory.getAction(intent)
+
+
+
+
+
